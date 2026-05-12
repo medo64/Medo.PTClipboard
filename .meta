@@ -1,0 +1,5 @@
+PROJECT_NAME:             Medo.PTClipboard
+PROJECT_ENTRYPOINT:       src/Medo.PTClipboard/Medo.PTClipboard.csproj
+PACKAGE_NUGET:            Medo.PTClipboard
+PACKAGE_NUGET_ENTRYPOINT: src/MultiFramework/Medo.PTClipboard.Multi.csproj
+PUBLISH_GITHUB_URL:       https://github.com/medo64/Medo.PTClipboard

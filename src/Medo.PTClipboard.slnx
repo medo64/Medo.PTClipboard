@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Examples/">
+    <Project Path="../examples/PTClipboardTest/PTClipboardTest.csproj" />
+  </Folder>
+  <Folder Name="/Code/">
+    <Project Path="Medo.PTClipboard/Medo.PTClipboard.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="../tests/Medo.PTClipboard.Tests/Medo.PTClipboard.Tests.csproj" />
+  </Folder>
+</Solution>

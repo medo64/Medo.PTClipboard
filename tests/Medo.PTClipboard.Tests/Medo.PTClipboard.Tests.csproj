@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <AssemblyName>Medo.PTClipboard.Tests</AssemblyName>
+        <RootNamespace>Tests</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <LangVersion>latest</LangVersion>
+        <IsPackable>false</IsPackable>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+        <EnableNETAnalyzers>false</EnableNETAnalyzers>
+        <NoWarn>CS0618,IDE0017,IDE0028,IDE0063,IDE0079</NoWarn>
+        <!-- CS0618: Member is obsolete -->
+        <!-- IDE0017: Use object initializers -->
+        <!-- IDE0028: Use collection initializers -->
+        <!-- IDE0063: Use simple 'using' statement -->
+        <!-- IDE0079: Remove unnecessary suppression -->
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+      <PackageReference Include="MSTest.TestAdapter" Version="4.1.0" />
+      <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
+      <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../src/Medo.PTClipboard/Medo.PTClipboard.csproj" />
+    </ItemGroup>
+
+</Project>
