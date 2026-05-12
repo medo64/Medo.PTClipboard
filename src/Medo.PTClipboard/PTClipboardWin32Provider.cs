@@ -14,13 +14,12 @@ using System.Threading;
 internal sealed class PTClipboardWin32Provider : PTClipboardProvider {
 
     internal PTClipboardWin32Provider() {
-        try {
+        try {  // just test if user32 is available
             NativeMethods.OpenClipboard(IntPtr.Zero);
             NativeMethods.CloseClipboard();
         } catch (DllNotFoundException) {
-            return;  // only fail if user32.dll is not found
+            throw new NotSupportedException("Cannot load user32.dll");
         }
-        IsAvailable = true;
     }
 
 
@@ -28,11 +27,6 @@ internal sealed class PTClipboardWin32Provider : PTClipboardProvider {
 
 
     #region PTClipboardProvider
-
-    /// <summary>
-    /// Returns true if provider is available.
-    /// </summary>
-    public override bool IsAvailable { get; }
 
 
     /// <summary>

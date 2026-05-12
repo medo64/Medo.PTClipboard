@@ -86,22 +86,24 @@ public static class PTClipboard {
         lock (ClipboardLock) {
             if (Provider is null || MainClipboard is null || SelectionClipboard is null) {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    Debug.WriteLine($"[PTClipboard] Using Win32 clipboard provider");
-                    Provider = new PTClipboardWin32Provider();
-                    if (!Provider.IsAvailable) {
+                    try {
+                        Provider = new PTClipboardWin32Provider();
+                        Debug.WriteLine($"[PTClipboard] Using Win32 clipboard provider");
+                    } catch (NotSupportedException ex) {
                         Provider = new PTClipboardFallbackProvider();
-                        Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider as Win32 seems unavailable");
+                        Trace.WriteLine($"[PTClipboard:Win32] Using fallback clipboard provider due to error ({ex.Message})");
                     }
                 } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                    Debug.WriteLine($"[PTClipboard] Using X11 clipboard provider");
-                    Provider = new PTClipboardX11Provider();
-                    if (!Provider.IsAvailable) {
+                    try {
+                        Provider = new PTClipboardX11Provider();
+                        Debug.WriteLine($"[PTClipboard] Using X11 clipboard provider");
+                    } catch (NotSupportedException ex) {
                         Provider = new PTClipboardFallbackProvider();
-                        Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider as X11 seems unavailable");
+                        Trace.WriteLine($"[PTClipboard:X11] Using fallback clipboard provider due to error ({ex.Message})");
                     }
                 } else {
-                    Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider for unsupported platform");
                     Provider = new PTClipboardFallbackProvider();
+                    Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider for unsupported platform");
                 }
                 MainClipboard = new PTMainClipboard(Provider);
                 SelectionClipboard = new PTSelectionClipboard(Provider);

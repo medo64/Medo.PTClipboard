@@ -18,13 +18,6 @@ internal sealed class PTClipboardFallbackProvider : PTClipboardProvider {
 
 
     /// <summary>
-    /// Returns true if provider is available.
-    /// Fallback provider always returns false.
-    /// </summary>
-    public override bool IsAvailable => false;
-
-
-    /// <summary>
     /// Returns true if clipboard service is available.
     /// </summary>
     public override bool IsClipboardAvailable => true;

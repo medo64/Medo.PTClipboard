@@ -19,64 +19,39 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         : base() {
         try {
             DisplayPtr = NativeMethods.XOpenDisplay(null);
-            if (DisplayPtr == IntPtr.Zero) {
-                Debug.WriteLine($"[PTClipboard:X11] Failed to open display");
-                return;
-            }
+            if (DisplayPtr == IntPtr.Zero) { throw new NotSupportedException("Failed to open display"); }
             Debug.WriteLine($"[PTClipboard:X11] Display: 0x{DisplayPtr:X2}");
         } catch (DllNotFoundException) {
-            Debug.WriteLine($"[PTClipboard:X11] Cannot load libX11");
-            return;
+            throw new NotSupportedException("Cannot load libX11");
         }
 
         RootWindowPtr = NativeMethods.XDefaultRootWindow(DisplayPtr);
-        if (RootWindowPtr == IntPtr.Zero) {
-            Debug.WriteLine($"[PTClipboard:X11] Failed to open root window");
-            return;
-        }
+        if (RootWindowPtr == IntPtr.Zero) { throw new NotSupportedException("Failed to open root window"); }
         Debug.WriteLine($"[PTClipboard:X11] RootWindow: 0x{RootWindowPtr:X2}");
 
         WindowPtr = NativeMethods.XCreateSimpleWindow(DisplayPtr, RootWindowPtr, -10, -10, 1, 1, 0, 0, 0);
-        if (WindowPtr == IntPtr.Zero) {
-            Debug.WriteLine($"[PTClipboard:X11] Failed to open new window");
-            return;
-        }
+        if (WindowPtr == IntPtr.Zero) { throw new NotSupportedException("Failed to open new window"); }
         Debug.WriteLine($"[PTClipboard:X11] Window: 0x{WindowPtr:X2}");
 
         TargetsAtom = NativeMethods.XInternAtom(DisplayPtr, "TARGETS", only_if_exists: false);
-        if (TargetsAtom == IntPtr.Zero) {
-            Debug.WriteLine($"[PTClipboard:X11] Failed to open TARGETS atom");
-            return;
-        }
+        if (TargetsAtom == IntPtr.Zero) { throw new NotSupportedException("Failed to open TARGETS atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom[TARGETS]: 0x{TargetsAtom:X2}");
 
         ClipboardAtom = NativeMethods.XInternAtom(DisplayPtr, "CLIPBOARD", only_if_exists: false);
-        if (ClipboardAtom == 0) {
-            Debug.WriteLine($"[PTClipboard:X11] Failed to open CLIPBOARD atom");
-            return;
-        }
+        if (ClipboardAtom == 0) { throw new NotSupportedException("Failed to open CLIPBOARD atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom(CLIPBOARD): 0x{ClipboardAtom:X2}");
 
         SelectionAtom = NativeMethods.XInternAtom(DisplayPtr, "PRIMARY", only_if_exists: false);
-        if (SelectionAtom == 0) {
-            Debug.WriteLine($"[PTClipboard:X11] Failed to open PRIMARY atom");
-            return;
-        }
+        if (SelectionAtom == 0) { throw new NotSupportedException("Failed to open PRIMARY atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom(PRIMARY): 0x{SelectionAtom:X2}");
 
         Utf8StringAtom = NativeMethods.XInternAtom(DisplayPtr, "UTF8_STRING", only_if_exists: false);
-        if (Utf8StringAtom == 0) {
-            Debug.WriteLine($"[PTClipboard:X11] Failed to open UTF8_STRING atom");
-            return;
-        }
+        if (Utf8StringAtom == 0) { throw new NotSupportedException("Failed to open UTF8_STRING atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom[UTF8_STRING]: 0x{Utf8StringAtom:X2}");
 
         var metaSelectionAtomName = "MEDO_SELECTION_0x" + RandomNumberGenerator.GetHexString(16, lowercase: true);
         MetaSelectionAtom = NativeMethods.XInternAtom(DisplayPtr, metaSelectionAtomName, only_if_exists: false);
-        if (MetaSelectionAtom == 0) {
-            Debug.WriteLine($"[PTClipboard:X11] Failed to open {metaSelectionAtomName} atom");
-            return;
-        }
+        if (MetaSelectionAtom == 0) { throw new NotSupportedException("Failed to open {metaSelectionAtomName} atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom[{metaSelectionAtomName}]: 0x{MetaSelectionAtom:X2}");
 
         EventThread = new Thread(EventLoop) {  // last to initialize so we can use it as detection for successful init
@@ -84,17 +59,10 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
             Name = "X11Clipboard",
         };
         EventThread.Start();
-        IsAvailable = true;
     }
 
 
     #region PTClipboardProvider
-
-    /// <summary>
-    /// Returns true if provider is available.
-    /// </summary>
-    public override bool IsAvailable { get; }
-
 
     /// <summary>
     /// Gets if clipboard service is available.

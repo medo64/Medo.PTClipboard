@@ -10,12 +10,6 @@ using System;
 internal abstract class PTClipboardProvider {
 
     /// <summary>
-    /// Returns true if provider is available.
-    /// </summary>
-    public abstract bool IsAvailable { get; }
-
-
-    /// <summary>
     /// Returns true if clipboard service is available.
     /// </summary>
     public abstract bool IsClipboardAvailable { get; }
