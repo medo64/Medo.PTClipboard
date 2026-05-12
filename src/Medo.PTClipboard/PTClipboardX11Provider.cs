@@ -61,6 +61,20 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         EventThread.Start();
     }
 
+    ~PTClipboardX11Provider() {
+        Dispose();
+    }
+
+    private bool WasDisposed;
+    public void Dispose() {
+        if (WasDisposed) { return; } else { WasDisposed = true; }
+        if (DisplayPtr != IntPtr.Zero) { NativeMethods.XCloseDisplay(DisplayPtr); }
+        if (WindowPtr != IntPtr.Zero) { var _ = NativeMethods.XDestroyWindow(DisplayPtr, WindowPtr); }
+        ClipboardBytesInLock.Dispose();
+        SelectionBytesInLock.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
 
     #region PTClipboardProvider
 
@@ -184,9 +198,9 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
     #endregion PTClipboardProvider
 
 
-    private IntPtr DisplayPtr;
+    private readonly IntPtr DisplayPtr;
     private readonly IntPtr RootWindowPtr;
-    private IntPtr WindowPtr;
+    private readonly IntPtr WindowPtr;
     private readonly Int32 ClipboardAtom;
     private readonly Int32 SelectionAtom;
     private readonly Int32 TargetsAtom;
@@ -362,24 +376,6 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         newEvent.xselection.property = @event.xselectionrequest.property;
         newEvent.xselection.time = @event.xselectionrequest.time;
         return newEvent;
-    }
-
-    ~PTClipboardX11Provider() {
-        Dispose();
-    }
-
-    public void Dispose() {
-        if (WindowPtr != IntPtr.Zero) {
-            var _ = NativeMethods.XDestroyWindow(DisplayPtr, WindowPtr);
-            WindowPtr = IntPtr.Zero;
-        }
-        if (DisplayPtr != IntPtr.Zero) {
-            NativeMethods.XCloseDisplay(DisplayPtr);
-            DisplayPtr = IntPtr.Zero;
-        }
-        ClipboardBytesInLock.Dispose();
-        SelectionBytesInLock.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     private static class NativeMethods {  //https://www.x.org/releases/current/doc/libX11/libX11/libX11.html
