@@ -13,44 +13,44 @@ using System.Threading;
 /// X11 clipboard handling operations.
 /// </summary>
 
-internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable {
+internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDisposable {
 
     internal PTClipboardX11Provider()
         : base() {
         try {
-            DisplayPtr = NativeMethods.XOpenDisplay(null);
+            DisplayPtr = Native.XOpenDisplay(null);
             if (DisplayPtr == IntPtr.Zero) { throw new NotSupportedException("Failed to open display"); }
             Debug.WriteLine($"[PTClipboard:X11] Display: 0x{DisplayPtr:X2}");
         } catch (DllNotFoundException) {
             throw new NotSupportedException("Cannot load libX11");
         }
 
-        RootWindowPtr = NativeMethods.XDefaultRootWindow(DisplayPtr);
+        RootWindowPtr = Native.XDefaultRootWindow(DisplayPtr);
         if (RootWindowPtr == IntPtr.Zero) { throw new NotSupportedException("Failed to open root window"); }
         Debug.WriteLine($"[PTClipboard:X11] RootWindow: 0x{RootWindowPtr:X2}");
 
-        WindowPtr = NativeMethods.XCreateSimpleWindow(DisplayPtr, RootWindowPtr, -10, -10, 1, 1, 0, 0, 0);
+        WindowPtr = Native.XCreateSimpleWindow(DisplayPtr, RootWindowPtr, -10, -10, 1, 1, 0, 0, 0);
         if (WindowPtr == IntPtr.Zero) { throw new NotSupportedException("Failed to open new window"); }
         Debug.WriteLine($"[PTClipboard:X11] Window: 0x{WindowPtr:X2}");
 
-        TargetsAtom = NativeMethods.XInternAtom(DisplayPtr, "TARGETS", only_if_exists: false);
+        TargetsAtom = Native.XInternAtom(DisplayPtr, "TARGETS", only_if_exists: false);
         if (TargetsAtom == IntPtr.Zero) { throw new NotSupportedException("Failed to open TARGETS atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom[TARGETS]: 0x{TargetsAtom:X2}");
 
-        ClipboardAtom = NativeMethods.XInternAtom(DisplayPtr, "CLIPBOARD", only_if_exists: false);
+        ClipboardAtom = Native.XInternAtom(DisplayPtr, "CLIPBOARD", only_if_exists: false);
         if (ClipboardAtom == 0) { throw new NotSupportedException("Failed to open CLIPBOARD atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom(CLIPBOARD): 0x{ClipboardAtom:X2}");
 
-        SelectionAtom = NativeMethods.XInternAtom(DisplayPtr, "PRIMARY", only_if_exists: false);
+        SelectionAtom = Native.XInternAtom(DisplayPtr, "PRIMARY", only_if_exists: false);
         if (SelectionAtom == 0) { throw new NotSupportedException("Failed to open PRIMARY atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom(PRIMARY): 0x{SelectionAtom:X2}");
 
-        Utf8StringAtom = NativeMethods.XInternAtom(DisplayPtr, "UTF8_STRING", only_if_exists: false);
+        Utf8StringAtom = Native.XInternAtom(DisplayPtr, "UTF8_STRING", only_if_exists: false);
         if (Utf8StringAtom == 0) { throw new NotSupportedException("Failed to open UTF8_STRING atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom[UTF8_STRING]: 0x{Utf8StringAtom:X2}");
 
         var metaSelectionAtomName = "MEDO_SELECTION_0x" + RandomNumberGenerator.GetHexString(16, lowercase: true);
-        MetaSelectionAtom = NativeMethods.XInternAtom(DisplayPtr, metaSelectionAtomName, only_if_exists: false);
+        MetaSelectionAtom = Native.XInternAtom(DisplayPtr, metaSelectionAtomName, only_if_exists: false);
         if (MetaSelectionAtom == 0) { throw new NotSupportedException("Failed to open {metaSelectionAtomName} atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom[{metaSelectionAtomName}]: 0x{MetaSelectionAtom:X2}");
 
@@ -68,8 +68,8 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
     private bool WasDisposed;
     public void Dispose() {
         if (WasDisposed) { return; } else { WasDisposed = true; }
-        if (DisplayPtr != IntPtr.Zero) { NativeMethods.XCloseDisplay(DisplayPtr); }
-        if (WindowPtr != IntPtr.Zero) { var _ = NativeMethods.XDestroyWindow(DisplayPtr, WindowPtr); }
+        if (DisplayPtr != IntPtr.Zero) { Native.XCloseDisplay(DisplayPtr); }
+        if (WindowPtr != IntPtr.Zero) { var _ = Native.XDestroyWindow(DisplayPtr, WindowPtr); }
         ClipboardBytesInLock.Dispose();
         SelectionBytesInLock.Dispose();
         GC.SuppressFinalize(this);
@@ -94,7 +94,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         lock (ClipboardBytesOutLock) {
             ClipboardBytesOut = [];
         }
-        NativeMethods.XSetSelectionOwner(DisplayPtr, ClipboardAtom, IntPtr.Zero, 0);
+        Native.XSetSelectionOwner(DisplayPtr, ClipboardAtom, IntPtr.Zero, 0);
         Debug.WriteLine($"[PTClipboard:X11] ClearClipboard(): Ownership cleared");
     }
 
@@ -108,7 +108,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         lock (ClipboardBytesOutLock) {
             ClipboardBytesOut = Encoding.UTF8.GetBytes(text);
         }
-        NativeMethods.XSetSelectionOwner(DisplayPtr, ClipboardAtom, WindowPtr, 0);
+        Native.XSetSelectionOwner(DisplayPtr, ClipboardAtom, WindowPtr, 0);
         Debug.WriteLine($"[PTClipboard:X11] SetText(): Ownership set");
     }
 
@@ -119,13 +119,13 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         if (EventThread == null) { return string.Empty; }   // something went wrong when initializing
 
         ClipboardBytesInLock.Reset();  // shouldn't be set but let's make sure
-        NativeMethods.XConvertSelection(DisplayPtr,
+        Native.XConvertSelection(DisplayPtr,
                                         ClipboardAtom,
                                         Utf8StringAtom,
                                         MetaSelectionAtom,
                                         WindowPtr,
                                         IntPtr.Zero);
-        NativeMethods.XFlush(DisplayPtr);
+        Native.XFlush(DisplayPtr);
         Debug.WriteLine($"[PTClipboard:X11] GetText(): Text requested");
 
         if (ClipboardBytesInLock.WaitOne(100)) {  // don't wait long
@@ -153,7 +153,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         lock (SelectionBytesOutLock) {
             SelectionBytesOut = [];
         }
-        NativeMethods.XSetSelectionOwner(DisplayPtr, SelectionAtom, IntPtr.Zero, 0);
+        Native.XSetSelectionOwner(DisplayPtr, SelectionAtom, IntPtr.Zero, 0);
         Debug.WriteLine($"[PTClipboard:X11] ClearSelection(): Ownership cleared");
     }
 
@@ -167,7 +167,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         lock (SelectionBytesOutLock) {
             SelectionBytesOut = Encoding.UTF8.GetBytes(text);
         }
-        NativeMethods.XSetSelectionOwner(DisplayPtr, SelectionAtom, WindowPtr, 0);
+        Native.XSetSelectionOwner(DisplayPtr, SelectionAtom, WindowPtr, 0);
         Debug.WriteLine($"[PTClipboard:X11] SetSelectionText(): Ownership set");
     }
 
@@ -178,13 +178,13 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         if (EventThread == null) { return string.Empty; }  // something went wrong when initializing
 
         SelectionBytesInLock.Reset();  // shouldn't be set but let's make sure
-        NativeMethods.XConvertSelection(DisplayPtr,
+        Native.XConvertSelection(DisplayPtr,
                                         SelectionAtom,
                                         Utf8StringAtom,
                                         MetaSelectionAtom,
                                         WindowPtr,
                                         IntPtr.Zero);
-        NativeMethods.XFlush(DisplayPtr);
+        Native.XFlush(DisplayPtr);
         Debug.WriteLine($"[PTClipboard:X11] GetText(): Text requested");
 
         if (SelectionBytesInLock.WaitOne(100)) {  // don't wait long
@@ -223,21 +223,21 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
 
         while (true) {  // this is background thread thus it will stop when app stops
             try {
-                NativeMethods.XEvent @event = new();
-                NativeMethods.XNextEvent(DisplayPtr, ref @event);
+                Native.XEvent @event = new();
+                Native.XNextEvent(DisplayPtr, ref @event);
                 Debug.WriteLine($"[PTClipboard:X11] NextEvent: {@event.type}");
 
                 switch (@event.type) {
-                    case NativeMethods.XEventType.SelectionRequest: {
+                    case Native.XEventType.SelectionRequest: {
                             var requestEvent = @event.xselectionrequest;
-                            if (NativeMethods.XGetSelectionOwner(DisplayPtr, requestEvent.selection) != WindowPtr) { continue; }  // not for us
+                            if (Native.XGetSelectionOwner(DisplayPtr, requestEvent.selection) != WindowPtr) { continue; }  // not for us
                             if (requestEvent.property == IntPtr.Zero) { continue; }  // we ignore empty propertty
                             if ((requestEvent.selection != ClipboardAtom) && (requestEvent.selection != SelectionAtom)) { continue; }  // we ignore anything not clipboard
 
                             if (requestEvent.target == TargetsAtom) {  // asking for formats
-                                Debug.WriteLine($"[PTClipboard:X11]   Query for {NativeMethods.XGetAtomName(DisplayPtr, requestEvent.property.ToInt32())}");
+                                Debug.WriteLine($"[PTClipboard:X11]   Query for {Native.XGetAtomName(DisplayPtr, requestEvent.property.ToInt32())}");
 
-                                NativeMethods.XChangeProperty(requestEvent.display,
+                                Native.XChangeProperty(requestEvent.display,
                                                               requestEvent.requestor,
                                                               requestEvent.property,
                                                               4,   // XA_ATOM
@@ -246,8 +246,8 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
                                                               [Utf8StringAtom],
                                                               1);
 
-                                var sendEvent = GetNewSelectionEventFromSelectionRequestEvent(@event, NativeMethods.XEventType.SelectionNotify, sendEvent: true);
-                                var resSend = NativeMethods.XSendEvent(DisplayPtr,
+                                var sendEvent = GetNewSelectionEventFromSelectionRequestEvent(@event, Native.XEventType.SelectionNotify, sendEvent: true);
+                                var resSend = Native.XSendEvent(DisplayPtr,
                                                                        requestEvent.requestor,
                                                                        propagate: false,
                                                                        eventMask: IntPtr.Zero,
@@ -255,7 +255,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
                                 if (resSend == 0) { Debug.WriteLine($"[PTClipboard:X11]   Failed to send event"); }
 
                             } else if (requestEvent.target == Utf8StringAtom) {
-                                Debug.WriteLine($"[PTClipboard:X11]   Request for {NativeMethods.XGetAtomName(DisplayPtr, requestEvent.property.ToInt32())}");
+                                Debug.WriteLine($"[PTClipboard:X11]   Request for {Native.XGetAtomName(DisplayPtr, requestEvent.property.ToInt32())}");
 
                                 var bufferPtr = IntPtr.Zero;
                                 int bufferLength;
@@ -274,7 +274,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
                                         }
                                     }
 
-                                    NativeMethods.XChangeProperty(DisplayPtr,
+                                    Native.XChangeProperty(DisplayPtr,
                                                                 requestEvent.requestor,
                                                                 requestEvent.property,
                                                                 requestEvent.target,
@@ -286,8 +286,8 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
                                     if (bufferPtr != IntPtr.Zero) { Marshal.FreeHGlobal(bufferPtr); }
                                 }
 
-                                var sendEvent = GetNewSelectionEventFromSelectionRequestEvent(@event, NativeMethods.XEventType.SelectionNotify, sendEvent: true);
-                                var resSend = NativeMethods.XSendEvent(DisplayPtr,
+                                var sendEvent = GetNewSelectionEventFromSelectionRequestEvent(@event, Native.XEventType.SelectionNotify, sendEvent: true);
+                                var resSend = Native.XSendEvent(DisplayPtr,
                                                                        requestEvent.requestor,
                                                                        propagate: false,
                                                                        eventMask: IntPtr.Zero,
@@ -297,7 +297,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
                         }
                         break;
 
-                    case NativeMethods.XEventType.SelectionNotify: {
+                    case Native.XEventType.SelectionNotify: {
                             var selectionEvent = @event.xselection;
                             if (selectionEvent.target != Utf8StringAtom) { continue; }  // we ignore anything not clipboard
 
@@ -313,10 +313,10 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
                                 continue;
                             }
 
-                            Debug.WriteLine($"[PTClipboard:X11]   Notification for {NativeMethods.XGetAtomName(DisplayPtr, selectionEvent.property.ToInt32())}");
+                            Debug.WriteLine($"[PTClipboard:X11]   Notification for {Native.XGetAtomName(DisplayPtr, selectionEvent.property.ToInt32())}");
 
                             var data = IntPtr.Zero;
-                            NativeMethods.XGetWindowProperty(DisplayPtr,
+                            Native.XGetWindowProperty(DisplayPtr,
                                                              selectionEvent.requestor,
                                                              selectionEvent.property,
                                                              long_offset: 0,
@@ -333,7 +333,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
                                     SelectionBytesIn = new byte[nitems.ToInt32()];
                                     Marshal.Copy(data, SelectionBytesIn, 0, SelectionBytesIn.Length);
                                     SelectionBytesInLock.Set();
-                                    NativeMethods.XFree(data);
+                                    Native.XFree(data);
                                 } else {
                                     Debug.WriteLine($"[PTClipboard:X11]   Cannot retrieve data");
                                     SelectionBytesIn = [];
@@ -344,7 +344,7 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
                                     ClipboardBytesIn = new byte[nitems.ToInt32()];
                                     Marshal.Copy(data, ClipboardBytesIn, 0, ClipboardBytesIn.Length);
                                     ClipboardBytesInLock.Set();
-                                    NativeMethods.XFree(data);
+                                    Native.XFree(data);
                                 } else {
                                     Debug.WriteLine($"[PTClipboard:X11]   Cannot retrieve data");
                                     ClipboardBytesIn = [];
@@ -364,8 +364,8 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         }
     }
 
-    private static NativeMethods.XEvent GetNewSelectionEventFromSelectionRequestEvent(NativeMethods.XEvent @event, NativeMethods.XEventType? type = null, bool? sendEvent = null) {
-        var newEvent = new NativeMethods.XEvent();
+    private static Native.XEvent GetNewSelectionEventFromSelectionRequestEvent(Native.XEvent @event, Native.XEventType? type = null, bool? sendEvent = null) {
+        var newEvent = new Native.XEvent();
         newEvent.xselection.type = (type != null) ? type.Value : @event.xselectionrequest.type;
         newEvent.xselection.serial = @event.xselectionrequest.serial;
         newEvent.xselection.send_event = (sendEvent != null) ? sendEvent.Value : @event.xselectionrequest.send_event;
@@ -378,175 +378,4 @@ internal sealed class PTClipboardX11Provider : PTClipboardProvider, IDisposable 
         return newEvent;
     }
 
-    private static class NativeMethods {  //https://www.x.org/releases/current/doc/libX11/libX11/libX11.html
-
-        internal enum XEventType {
-            KeyPress = 2,
-            KeyRelease = 3,
-            ButtonPress = 4,
-            ButtonRelease = 5,
-            MotionNotify = 6,
-            EnterNotify = 7,
-            LeaveNotify = 8,
-            FocusIn = 9,
-            FocusOut = 10,
-            KeymapNotify = 11,
-            Expose = 12,
-            GraphicsExpose = 13,
-            NoExpose = 14,
-            VisibilityNotify = 15,
-            CreateNotify = 16,
-            DestroyNotify = 17,
-            UnmapNotify = 18,
-            MapNotify = 19,
-            MapRequest = 20,
-            ReparentNotify = 21,
-            ConfigureNotify = 22,
-            ConfigureRequest = 23,
-            GravityNotify = 24,
-            ResizeRequest = 25,
-            CirculateNotify = 26,
-            CirculateRequest = 27,
-            PropertyNotify = 28,
-            SelectionClear = 29,
-            SelectionRequest = 30,
-            SelectionNotify = 31,
-            ColormapNotify = 32,
-            ClientMessage = 33,
-            MappingNotify = 34,
-        }
-
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct XSelectionClearEvent {
-            internal XEventType type;
-            internal IntPtr serial;
-            internal bool send_event;
-            internal IntPtr display;
-            internal IntPtr window;
-            internal IntPtr selection;
-            internal IntPtr time;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct XSelectionEvent {
-            internal XEventType type;
-            internal IntPtr serial;
-            internal bool send_event;
-            internal IntPtr display;
-            internal IntPtr requestor;
-            internal IntPtr selection;
-            internal IntPtr target;
-            internal IntPtr property;
-            internal IntPtr time;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct XSelectionRequestEvent {
-            internal XEventType type;
-            internal IntPtr serial;
-            internal bool send_event;
-            internal IntPtr display;
-            internal IntPtr owner;
-            internal IntPtr requestor;
-            internal IntPtr selection;
-            internal IntPtr target;
-            internal IntPtr property;
-            internal IntPtr time;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct XEventPad {
-            internal IntPtr pad00;
-            internal IntPtr pad01;
-            internal IntPtr pad02;
-            internal IntPtr pad03;
-            internal IntPtr pad04;
-            internal IntPtr pad05;
-            internal IntPtr pad06;
-            internal IntPtr pad07;
-            internal IntPtr pad08;
-            internal IntPtr pad09;
-            internal IntPtr pad10;
-            internal IntPtr pad11;
-            internal IntPtr pad12;
-            internal IntPtr pad13;
-            internal IntPtr pad14;
-            internal IntPtr pad15;
-            internal IntPtr pad16;
-            internal IntPtr pad17;
-            internal IntPtr pad18;
-            internal IntPtr pad19;
-            internal IntPtr pad20;
-            internal IntPtr pad21;
-            internal IntPtr pad22;
-            internal IntPtr pad23;
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        internal struct XEvent {
-            [FieldOffset(0)] internal XEventType type;
-            [FieldOffset(0)] internal XSelectionClearEvent xselectionclear;
-            [FieldOffset(0)] internal XSelectionRequestEvent xselectionrequest;
-            [FieldOffset(0)] internal XSelectionEvent xselection;
-            [FieldOffset(0)] internal XEventPad pad;
-        }
-
-#pragma warning disable CA5392,SYSLIB1054
-
-        [DllImport("libX11")]  // actually returns Int32 but we don't care
-        internal extern static void XChangeProperty(IntPtr display, IntPtr w, IntPtr property, IntPtr type, Int32 format, Int32 mode, IntPtr data, int nelements);
-
-        [DllImport("libX11")]  // actually returns Int32 but we don't care
-        internal extern static void XChangeProperty(IntPtr display, IntPtr w, IntPtr property, UInt32 type, Int32 format, Int32 mode, Int32[] data, int nelements);
-
-        [DllImport("libX11")]
-        internal extern static void XCloseDisplay(IntPtr display);
-
-        [DllImport("libX11")]
-        internal extern static void XConvertSelection(IntPtr display, IntPtr selection, IntPtr target, IntPtr property, IntPtr requestor, IntPtr time);
-
-        [DllImport("libX11")]
-        internal extern static IntPtr XCreateSimpleWindow(IntPtr display, IntPtr parent, Int32 x, Int32 y, UInt32 width, UInt32 height, UInt32 border_width, nuint border, nuint background);
-
-        [DllImport("libX11")]
-        internal extern static IntPtr XDefaultRootWindow(IntPtr display);
-
-        [DllImport("libX11")]
-        public static extern int XDestroyWindow(IntPtr display, IntPtr window);
-
-        [DllImport("libX11")]  // actually returns Int32 but we don't care
-        internal extern static void XFlush(IntPtr display);
-
-        [DllImport("libX11")]
-        internal extern static void XFree(IntPtr data);
-
-        [DllImport("libX11", BestFitMapping = false)]
-        [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-        internal extern static String XGetAtomName(IntPtr display, Int32 atom);
-
-        [DllImport("libX11")]
-        internal extern static IntPtr XGetSelectionOwner(IntPtr display, IntPtr selection);
-
-        [DllImport("libX11")]  // actually returns Int32 but we don't care
-        internal extern static void XGetWindowProperty(IntPtr display, IntPtr w, IntPtr property, IntPtr long_offset, IntPtr long_length, bool delete, IntPtr req_type, out IntPtr actual_type_return, out Int32 actual_format_return, out IntPtr nitems_return, out IntPtr bytes_after_return, ref IntPtr prop_return);
-
-        [DllImport("libX11", BestFitMapping = false)]
-        internal extern static Int32 XInternAtom(IntPtr display, [MarshalAs(UnmanagedType.LPUTF8Str)] String atom_name, bool only_if_exists);
-
-        [DllImport("libX11")]
-        internal extern static void XNextEvent(IntPtr display, ref XEvent event_return);
-
-        [DllImport("libX11", BestFitMapping = false)]
-        internal extern static IntPtr XOpenDisplay([MarshalAs(UnmanagedType.LPUTF8Str)] String? display_name);
-
-        [DllImport("libX11")]
-        internal extern static Int32 XSendEvent(IntPtr display, IntPtr window, bool propagate, IntPtr eventMask, ref XEvent sendEvent);
-
-        [DllImport("libX11")]
-        internal extern static void XSetSelectionOwner(IntPtr display, IntPtr selection, IntPtr owner, UInt32 time);
-
-#pragma warning restore CA5392,SYSLIB1054
-
-    }
 }
