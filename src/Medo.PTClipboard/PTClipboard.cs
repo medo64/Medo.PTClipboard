@@ -91,15 +91,24 @@ public static class PTClipboard {
                         Debug.WriteLine($"[PTClipboard] Using Win32 clipboard provider");
                     } catch (NotSupportedException ex) {
                         Provider = new PTClipboardFallbackProvider();
-                        Trace.WriteLine($"[PTClipboard:Win32] Using fallback clipboard provider due to error ({ex.Message})");
+                        Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
                     }
                 } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                     try {
-                        Provider = new PTClipboardX11Provider();
-                        Debug.WriteLine($"[PTClipboard] Using X11 clipboard provider");
+                        var waylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") ?? "";
+                        var xdgSessionType = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE") ?? "";
+                        var isWaylandDisplay = waylandDisplay.StartsWith("wayland-", StringComparison.OrdinalIgnoreCase);
+                        var isWaylandSessionType = xdgSessionType.Equals("wayland", StringComparison.OrdinalIgnoreCase);
+                        if (isWaylandDisplay || isWaylandSessionType) {
+                            Provider = new PTClipboardX11Provider();  // TODO: Wayland clipboard provider
+                            Debug.WriteLine($"[PTClipboard] Using Wayland clipboard provider");
+                        } else {
+                            Provider = new PTClipboardX11Provider();
+                            Debug.WriteLine($"[PTClipboard] Using X11 clipboard provider");
+                        }
                     } catch (NotSupportedException ex) {
                         Provider = new PTClipboardFallbackProvider();
-                        Trace.WriteLine($"[PTClipboard:X11] Using fallback clipboard provider due to error ({ex.Message})");
+                        Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
                     }
                 } else {
                     Provider = new PTClipboardFallbackProvider();
