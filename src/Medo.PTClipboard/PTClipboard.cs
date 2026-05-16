@@ -19,7 +19,7 @@ public static class PTClipboard {
     /// </summary>
     public static PTMainClipboard Main {
         get {
-            GetClipboards(out var main, out var _);
+            GetClipboards(out var main, out _);
             return main;
         }
     }
@@ -29,7 +29,7 @@ public static class PTClipboard {
     /// </summary>
     public static PTSelectionClipboard Selection {
         get {
-            GetClipboards(out var _, out var selection);
+            GetClipboards(out _, out var selection);
             return selection;
         }
     }
