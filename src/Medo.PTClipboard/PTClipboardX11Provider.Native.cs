@@ -125,7 +125,7 @@ partial class PTClipboardX11Provider {
             [FieldOffset(0)] internal XEventPad pad;
         }
 
-#pragma warning disable CA5392,SYSLIB1054
+#pragma warning disable CA5392
 
         [DllImport("libX11")]  // actually returns Int32 but we don't care
         internal extern static void XChangeProperty(IntPtr display, IntPtr w, IntPtr property, IntPtr type, Int32 format, Int32 mode, IntPtr data, int nelements);
@@ -179,7 +179,7 @@ partial class PTClipboardX11Provider {
         [DllImport("libX11")]
         internal extern static void XSetSelectionOwner(IntPtr display, IntPtr selection, IntPtr owner, UInt32 time);
 
-#pragma warning restore CA5392,SYSLIB1054
+#pragma warning restore CA5392
 
     }
 }
