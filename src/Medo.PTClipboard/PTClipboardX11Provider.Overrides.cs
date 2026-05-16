@@ -18,15 +18,13 @@ partial class PTClipboardX11Provider {
     /// <summary>
     /// Gets if clipboard service is available.
     /// </summary>
-    public override bool IsClipboardAvailable {
-        get { return (EventThread != null); }
-    }
+    public override bool IsClipboardAvailable => true;
 
     /// <summary>
     /// Clears the clipboard.
     /// </summary>
     public override void ClearClipboard() {
-        if (EventThread == null) { return; }   // something went wrong when initializing
+        ObjectDisposedException.ThrowIf(WasDisposed, this);
 
         lock (ClipboardBytesOutLock) {
             ClipboardBytesOut = [];
@@ -40,7 +38,7 @@ partial class PTClipboardX11Provider {
     /// </summary>
     /// <param name="text">Text.</param>
     public override void SetClipboardText(string text) {
-        if (EventThread == null) { return; }   // something went wrong when initializing
+        ObjectDisposedException.ThrowIf(WasDisposed, this);
 
         lock (ClipboardBytesOutLock) {
             ClipboardBytesOut = Encoding.UTF8.GetBytes(text);
@@ -53,7 +51,7 @@ partial class PTClipboardX11Provider {
     /// Gets the clipboard text.
     /// </summary>
     public override string GetClipboardText() {
-        if (EventThread == null) { return string.Empty; }   // something went wrong when initializing
+        ObjectDisposedException.ThrowIf(WasDisposed, this);
 
         ClipboardBytesInLock.Reset();  // shouldn't be set but let's make sure
         Native.XConvertSelection(DisplayPtr,
@@ -77,15 +75,13 @@ partial class PTClipboardX11Provider {
     /// <summary>
     /// Returns true if selection clipboard service is available.
     /// </summary>
-    public override bool IsSelectionAvailable {
-        get { return (EventThread != null); }
-    }
+    public override bool IsSelectionAvailable => true;
 
     /// <summary>
     /// Clears the clipboard.
     /// </summary>
     public override void ClearSelection() {
-        if (EventThread == null) { return; }   // something went wrong when initializing
+        ObjectDisposedException.ThrowIf(WasDisposed, this);
 
         lock (SelectionBytesOutLock) {
             SelectionBytesOut = [];
@@ -99,7 +95,7 @@ partial class PTClipboardX11Provider {
     /// </summary>
     /// <param name="text">Text.</param>
     public override void SetSelectionText(string text) {
-        if (EventThread == null) { return; }  // something went wrong when initializing
+        ObjectDisposedException.ThrowIf(WasDisposed, this);
 
         lock (SelectionBytesOutLock) {
             SelectionBytesOut = Encoding.UTF8.GetBytes(text);
@@ -112,7 +108,7 @@ partial class PTClipboardX11Provider {
     /// Gets the selection clipboard text.
     /// </summary>
     public override string GetSelectionText() {
-        if (EventThread == null) { return string.Empty; }  // something went wrong when initializing
+        ObjectDisposedException.ThrowIf(WasDisposed, this);
 
         SelectionBytesInLock.Reset();  // shouldn't be set but let's make sure
         Native.XConvertSelection(DisplayPtr,

@@ -85,7 +85,7 @@ internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDis
     private readonly Int32 Utf8StringAtom;
     private readonly Int32 MetaSelectionAtom;
 
-    private readonly Thread? EventThread;
+    private readonly Thread EventThread;
 
     private readonly Lock ClipboardBytesOutLock = new();  // locked when BytesOut is accessed
     private byte[] ClipboardBytesOut = [];
