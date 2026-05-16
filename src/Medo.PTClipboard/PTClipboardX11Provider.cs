@@ -34,7 +34,7 @@ internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDis
         Debug.WriteLine($"[PTClipboard:X11] Window: 0x{WindowPtr:X2}");
 
         TargetsAtom = Native.XInternAtom(DisplayPtr, "TARGETS", only_if_exists: false);
-        if (TargetsAtom == IntPtr.Zero) { throw new NotSupportedException("Failed to open TARGETS atom"); }
+        if (TargetsAtom == 0) { throw new NotSupportedException("Failed to open TARGETS atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom[TARGETS]: 0x{TargetsAtom:X2}");
 
         ClipboardAtom = Native.XInternAtom(DisplayPtr, "CLIPBOARD", only_if_exists: false);
