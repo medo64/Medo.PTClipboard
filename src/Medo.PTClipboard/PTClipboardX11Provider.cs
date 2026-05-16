@@ -51,7 +51,7 @@ internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDis
 
         var metaSelectionAtomName = "MEDO_SELECTION_0x" + RandomNumberGenerator.GetHexString(16, lowercase: true);
         MetaSelectionAtom = Native.XInternAtom(DisplayPtr, metaSelectionAtomName, only_if_exists: false);
-        if (MetaSelectionAtom == 0) { throw new NotSupportedException("Failed to open {metaSelectionAtomName} atom"); }
+        if (MetaSelectionAtom == 0) { throw new NotSupportedException($"Failed to open {metaSelectionAtomName} atom"); }
         Debug.WriteLine($"[PTClipboard:X11] Atom[{metaSelectionAtomName}]: 0x{MetaSelectionAtom:X2}");
 
         EventThread = new Thread(EventLoop) {  // last to initialize so we can use it as detection for successful init
