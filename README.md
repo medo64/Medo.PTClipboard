@@ -10,6 +10,9 @@ comprehensive libraries.
 Features:
 * Works on both Windows and Linux (Wayland, X11)
 * Supports clipboard and primary selection buffers
+* .NET AOT support
+
+You can find packaged library at [NuGet][https://www.nuget.org/packages/Medo.PTClipboard].
 
 
 ## Usage
