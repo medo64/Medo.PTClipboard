@@ -82,6 +82,30 @@ public static class PTClipboard {
     }
 
 
+    /// <summary>
+    /// Initializes the clipboard service and allocates all resources.
+    /// Call to this method is optional, as the clipboard service will be initialized on demand.
+    /// </summary>
+    public static void Initialize() {
+        lock (ClipboardLock) {
+            Terminate();
+            GetClipboards(out _, out _);
+        }
+    }
+
+    /// <summary>
+    /// Terminates the clipboard service and releases all resources.
+    /// </summary>
+    public static void Terminate() {
+        lock (ClipboardLock) {
+            MainClipboard = null;
+            SelectionClipboard = null;
+            Provider?.Dispose();
+            Provider = null;
+        }
+    }
+
+
     private static readonly Lock ClipboardLock = new();
     private static PTClipboardProvider? Provider;
     private static PTMainClipboard? MainClipboard;
