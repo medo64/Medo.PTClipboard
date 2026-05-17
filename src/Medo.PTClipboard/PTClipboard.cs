@@ -88,8 +88,20 @@ public static class PTClipboard {
     /// </summary>
     public static void Initialize() {
         lock (ClipboardLock) {
+            Initialize(PTClipboardProviderKind.Default);
+        }
+    }
+
+    /// <summary>
+    /// Initializes the clipboard service and allocates all resources.
+    /// Call to this method is optional, as the clipboard service will be initialized on demand.
+    /// </summary>
+    /// <param name="providerKind">Clipboard provider to use.</param>
+    /// <exception cref="NotSupportedException">Thrown if the specified provider cannot be initialized.</exception>
+    public static void Initialize(PTClipboardProviderKind providerKind) {
+        lock (ClipboardLock) {
             Terminate();
-            GetClipboards(out _, out _);
+            GetClipboards(out _, out _, providerKind);
         }
     }
 
@@ -111,42 +123,75 @@ public static class PTClipboard {
     private static PTMainClipboard? MainClipboard;
     private static PTSelectionClipboard? SelectionClipboard;
 
-    private static void GetClipboards(out PTMainClipboard main, out PTSelectionClipboard selection) {
+    private static void GetClipboards(out PTMainClipboard mainClipboard, out PTSelectionClipboard selectionClipboard, PTClipboardProviderKind forceKind = PTClipboardProviderKind.Default) {
         if (Provider is null || MainClipboard is null || SelectionClipboard is null) {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                try {
-                    Provider = new PTClipboardWin32Provider();
-                    Debug.WriteLine($"[PTClipboard] Using Win32 clipboard provider");
-                } catch (NotSupportedException ex) {
-                    Provider = new PTClipboardFallbackProvider();
-                    Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
-                }
-            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                try {
-                    var waylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") ?? "";
-                    var xdgSessionType = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE") ?? "";
-                    var isWaylandDisplay = waylandDisplay.StartsWith("wayland-", StringComparison.OrdinalIgnoreCase);
-                    var isWaylandSessionType = xdgSessionType.Equals("wayland", StringComparison.OrdinalIgnoreCase);
-                    if (isWaylandDisplay || isWaylandSessionType) {
+
+            switch (forceKind) {
+                case PTClipboardProviderKind.ForceWayland: {
                         Provider = new PTClipboardWaylandProvider();
-                        Debug.WriteLine($"[PTClipboard] Using Wayland clipboard provider");
-                    } else {
-                        Provider = new PTClipboardX11Provider();
-                        Debug.WriteLine($"[PTClipboard] Using X11 clipboard provider");
+                        Debug.WriteLine($"[PTClipboard] Forcing Wayland clipboard provider (forced)");
                     }
-                } catch (NotSupportedException ex) {
-                    Provider = new PTClipboardFallbackProvider();
-                    Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
-                }
-            } else {
-                Provider = new PTClipboardFallbackProvider();
-                Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider for unsupported platform");
+                    break;
+
+                case PTClipboardProviderKind.ForceX11: {
+                        Provider = new PTClipboardX11Provider();
+                        Debug.WriteLine($"[PTClipboard] Forcing X11 clipboard provider (forced)");
+                    }
+                    break;
+
+                case PTClipboardProviderKind.ForceWin32: {
+                        Provider = new PTClipboardWin32Provider();
+                        Debug.WriteLine($"[PTClipboard] Forcing Win32 clipboard provider (forced)");
+                    }
+                    break;
+
+                case PTClipboardProviderKind.None: {
+                        Provider = new PTClipboardFallbackProvider();
+                        Debug.WriteLine($"[PTClipboard] Forcing fallback clipboard provider (forced)");
+                    }
+                    break;
+
+                case PTClipboardProviderKind.Default:
+                default: {
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                            try {
+                                Provider = new PTClipboardWin32Provider();
+                                Debug.WriteLine($"[PTClipboard] Using Win32 clipboard provider");
+                            } catch (NotSupportedException ex) {
+                                Provider = new PTClipboardFallbackProvider();
+                                Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
+                            }
+                        } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                            try {
+                                var waylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") ?? "";
+                                var xdgSessionType = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE") ?? "";
+                                var isWaylandDisplay = waylandDisplay.StartsWith("wayland-", StringComparison.OrdinalIgnoreCase);
+                                var isWaylandSessionType = xdgSessionType.Equals("wayland", StringComparison.OrdinalIgnoreCase);
+                                if (isWaylandDisplay || isWaylandSessionType) {
+                                    Provider = new PTClipboardWaylandProvider();
+                                    Debug.WriteLine($"[PTClipboard] Using Wayland clipboard provider");
+                                } else {
+                                    Provider = new PTClipboardX11Provider();
+                                    Debug.WriteLine($"[PTClipboard] Using X11 clipboard provider");
+                                }
+                            } catch (NotSupportedException ex) {
+                                Provider = new PTClipboardFallbackProvider();
+                                Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
+                            }
+                        } else {
+                            Provider = new PTClipboardFallbackProvider();
+                            Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider for unsupported platform");
+                        }
+                    }
+                    break;
             }
+
             MainClipboard = new PTMainClipboard(Provider, ClipboardLock);
             SelectionClipboard = new PTSelectionClipboard(Provider, ClipboardLock);
         }
-        main = MainClipboard;
-        selection = SelectionClipboard;
+
+        mainClipboard = MainClipboard;
+        selectionClipboard = SelectionClipboard;
     }
 
 }

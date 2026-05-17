@@ -1,5 +1,6 @@
 namespace Tests;
 
+using System;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Medo;
@@ -96,6 +97,19 @@ public class Basic_Tests {
 
                 PTClipboard.Terminate();
                 PTClipboard.Terminate();
+            } else {
+                Assert.Inconclusive("Platform not supported.");
+            }
+        }
+    }
+
+    [TestMethod]
+    public void InitializeWrongWin32Provider() {
+        lock (Helpers.FullTestLock) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                Assert.Throws<NotSupportedException>(() => {
+                    PTClipboard.Initialize(PTClipboardProviderKind.ForceWin32);
+                });
             } else {
                 Assert.Inconclusive("Platform not supported.");
             }
