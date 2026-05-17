@@ -12,25 +12,26 @@ Features:
 * Supports clipboard and primary selection buffers
 * .NET AOT support
 
-You can find packaged library at [NuGet][https://www.nuget.org/packages/Medo.PTClipboard].
+You can find packaged library at [NuGet][nuget_ptclipboard]
 
 
 ## Usage
 
 To write and read clipboard:
 ~~~csharp
-using System;
 using Medo;
 
 PTClipboard.SetText("My text.");
-Console.WriteLine(PTClipboard.GetText());
+var text = PTClipboard.GetText();
 ~~~
 
 To write and read X11 primary selection (aka, middle-click clipboard):
 ~~~csharp
-using System;
 using Medo;
 
 PTClipboard.Selection.SetText("My text.");
-Console.WriteLine(PTClipboard.Selection.GetText());
+var selectionText = PTClipboard.Selection.GetText();
 ~~~
+
+
+[nuget_ptclipboard]: https://www.nuget.org/packages/Medo.PTClipboard/
