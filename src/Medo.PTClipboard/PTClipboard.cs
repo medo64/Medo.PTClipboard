@@ -20,8 +20,10 @@ public static class PTClipboard {
     /// </summary>
     public static PTMainClipboard Main {
         get {
-            GetClipboards(out var main, out _);
-            return main;
+            lock (ClipboardLock) {
+                GetClipboards(out var main, out _);
+                return main;
+            }
         }
     }
 
@@ -30,8 +32,10 @@ public static class PTClipboard {
     /// </summary>
     public static PTSelectionClipboard Selection {
         get {
-            GetClipboards(out _, out var selection);
-            return selection;
+            lock (ClipboardLock) {
+                GetClipboards(out _, out var selection);
+                return selection;
+            }
         }
     }
 
@@ -84,40 +88,38 @@ public static class PTClipboard {
     private static PTSelectionClipboard? SelectionClipboard;
 
     private static void GetClipboards(out PTMainClipboard main, out PTSelectionClipboard selection) {
-        lock (ClipboardLock) {
-            if (Provider is null || MainClipboard is null || SelectionClipboard is null) {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    try {
-                        Provider = new PTClipboardWin32Provider();
-                        Debug.WriteLine($"[PTClipboard] Using Win32 clipboard provider");
-                    } catch (NotSupportedException ex) {
-                        Provider = new PTClipboardFallbackProvider();
-                        Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
-                    }
-                } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                    try {
-                        var waylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") ?? "";
-                        var xdgSessionType = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE") ?? "";
-                        var isWaylandDisplay = waylandDisplay.StartsWith("wayland-", StringComparison.OrdinalIgnoreCase);
-                        var isWaylandSessionType = xdgSessionType.Equals("wayland", StringComparison.OrdinalIgnoreCase);
-                        if (isWaylandDisplay || isWaylandSessionType) {
-                            Provider = new PTClipboardX11Provider();  // TODO: Wayland clipboard provider
-                            Debug.WriteLine($"[PTClipboard] Using Wayland clipboard provider");
-                        } else {
-                            Provider = new PTClipboardX11Provider();
-                            Debug.WriteLine($"[PTClipboard] Using X11 clipboard provider");
-                        }
-                    } catch (NotSupportedException ex) {
-                        Provider = new PTClipboardFallbackProvider();
-                        Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
-                    }
-                } else {
+        if (Provider is null || MainClipboard is null || SelectionClipboard is null) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                try {
+                    Provider = new PTClipboardWin32Provider();
+                    Debug.WriteLine($"[PTClipboard] Using Win32 clipboard provider");
+                } catch (NotSupportedException ex) {
                     Provider = new PTClipboardFallbackProvider();
-                    Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider for unsupported platform");
+                    Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
                 }
-                MainClipboard = new PTMainClipboard(Provider, ClipboardLock);
-                SelectionClipboard = new PTSelectionClipboard(Provider, ClipboardLock);
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                try {
+                    var waylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY") ?? "";
+                    var xdgSessionType = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE") ?? "";
+                    var isWaylandDisplay = waylandDisplay.StartsWith("wayland-", StringComparison.OrdinalIgnoreCase);
+                    var isWaylandSessionType = xdgSessionType.Equals("wayland", StringComparison.OrdinalIgnoreCase);
+                    if (isWaylandDisplay || isWaylandSessionType) {
+                        Provider = new PTClipboardX11Provider();  // TODO: Wayland clipboard provider
+                        Debug.WriteLine($"[PTClipboard] Using Wayland clipboard provider");
+                    } else {
+                        Provider = new PTClipboardX11Provider();
+                        Debug.WriteLine($"[PTClipboard] Using X11 clipboard provider");
+                    }
+                } catch (NotSupportedException ex) {
+                    Provider = new PTClipboardFallbackProvider();
+                    Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider due to error ({ex.Message})");
+                }
+            } else {
+                Provider = new PTClipboardFallbackProvider();
+                Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider for unsupported platform");
             }
+            MainClipboard = new PTMainClipboard(Provider, ClipboardLock);
+            SelectionClipboard = new PTSelectionClipboard(Provider, ClipboardLock);
         }
         main = MainClipboard;
         selection = SelectionClipboard;
