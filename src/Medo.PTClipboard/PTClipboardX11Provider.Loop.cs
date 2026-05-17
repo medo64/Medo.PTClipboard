@@ -151,6 +151,11 @@ partial class PTClipboardX11Provider {
                         }
                         break;
 
+                    case Native.XEventType.ClientMessage: {
+                            Debug.WriteLine($"[PTClipboard:X11]   Exit event loop");
+                            return;
+                        }
+
                     default: break;
                 }
 #pragma warning disable CA1031

@@ -14,39 +14,9 @@ partial class PTClipboardX11Provider {
     private static class Native {  // https://www.x.org/releases/current/doc/libX11/libX11/libX11.html
 
         internal enum XEventType {
-            KeyPress = 2,
-            KeyRelease = 3,
-            ButtonPress = 4,
-            ButtonRelease = 5,
-            MotionNotify = 6,
-            EnterNotify = 7,
-            LeaveNotify = 8,
-            FocusIn = 9,
-            FocusOut = 10,
-            KeymapNotify = 11,
-            Expose = 12,
-            GraphicsExpose = 13,
-            NoExpose = 14,
-            VisibilityNotify = 15,
-            CreateNotify = 16,
-            DestroyNotify = 17,
-            UnmapNotify = 18,
-            MapNotify = 19,
-            MapRequest = 20,
-            ReparentNotify = 21,
-            ConfigureNotify = 22,
-            ConfigureRequest = 23,
-            GravityNotify = 24,
-            ResizeRequest = 25,
-            CirculateNotify = 26,
-            CirculateRequest = 27,
-            PropertyNotify = 28,
-            SelectionClear = 29,
             SelectionRequest = 30,
             SelectionNotify = 31,
-            ColormapNotify = 32,
             ClientMessage = 33,
-            MappingNotify = 34,
         }
 
 
@@ -116,12 +86,24 @@ partial class PTClipboardX11Provider {
             internal IntPtr pad23;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct XClientMessageEvent {
+            internal XEventType type;
+            internal IntPtr serial;
+            internal bool send_event;
+            internal IntPtr display;
+            internal IntPtr window;
+            internal IntPtr message_type;
+            internal Int32 format;
+        }
+
         [StructLayout(LayoutKind.Explicit)]
         internal struct XEvent {
             [FieldOffset(0)] internal XEventType type;
             [FieldOffset(0)] internal XSelectionClearEvent xselectionclear;
             [FieldOffset(0)] internal XSelectionRequestEvent xselectionrequest;
             [FieldOffset(0)] internal XSelectionEvent xselection;
+            [FieldOffset(0)] internal XClientMessageEvent xclient;
             [FieldOffset(0)] internal XEventPad pad;
         }
 

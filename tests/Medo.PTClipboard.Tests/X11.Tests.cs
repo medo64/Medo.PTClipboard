@@ -15,7 +15,7 @@ public class X11_Tests {
                 var textP = "P-" + RandomNumberGenerator.GetHexString(8);
                 var textC = "C-" + RandomNumberGenerator.GetHexString(8);
 
-                var clipboardProvider = new PTClipboardX11Provider();
+                using var clipboardProvider = new PTClipboardX11Provider();
                 clipboardProvider.SetSelectionText(textP);
                 clipboardProvider.SetClipboardText(textC);
                 clipboardProvider.SetSelectionText(textP);
@@ -35,7 +35,7 @@ public class X11_Tests {
                 var textP = "P-" + RandomNumberGenerator.GetHexString(8);
                 var textC = "C-" + RandomNumberGenerator.GetHexString(8);
 
-                var clipboardProvider = new PTClipboardX11Provider();
+                using var clipboardProvider = new PTClipboardX11Provider();
                 clipboardProvider.SetClipboardText(textC);
                 clipboardProvider.SetSelectionText(textP);
                 clipboardProvider.SetClipboardText(textC);
