@@ -8,7 +8,7 @@ using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-internal sealed partial class PTClipboardWaylandProvider : PTClipboardProvider, IDisposable {
+internal sealed partial class PTClipboardWaylandProvider : PTClipboardProvider {
 
     public PTClipboardWaylandProvider() {
         OwnPtr = GCHandle.ToIntPtr(GCHandle.Alloc(this));
@@ -98,16 +98,15 @@ internal sealed partial class PTClipboardWaylandProvider : PTClipboardProvider, 
     }
 
     ~PTClipboardWaylandProvider() {
-        Dispose();
+        Dispose(disposing: false);
     }
 
-    private bool WasDisposed;
-    public void Dispose() {
-        if (WasDisposed) { return; } else { WasDisposed = true; }
-
+    protected override void Dispose(bool disposing) {
         SourcePumpStop.Set();
         SourcePumpWake.Set();
-        SourcePumpThread?.Join();
+        if (disposing) {
+            SourcePumpThread?.Join();
+        }
 
         ReleaseAllOffers();
         ReleaseSource(ClipboardSourcePtr);
@@ -120,15 +119,15 @@ internal sealed partial class PTClipboardWaylandProvider : PTClipboardProvider, 
 
         GCHandle.FromIntPtr(OwnPtr).Free();
 
-        RegistryListeners.Dispose();
-        DeviceListeners.Dispose();
-        OfferListeners.Dispose();
-        SourceListeners.Dispose();
+        if (disposing) {
+            RegistryListeners.Dispose();
+            DeviceListeners.Dispose();
+            OfferListeners.Dispose();
+            SourceListeners.Dispose();
 
-        SourcePumpWake.Dispose();
-        SourcePumpStop.Dispose();
-
-        GC.SuppressFinalize(this);
+            SourcePumpWake.Dispose();
+            SourcePumpStop.Dispose();
+        }
     }
 
 

@@ -38,4 +38,9 @@ internal sealed partial class PTClipboardWin32Provider : PTClipboardProvider {
         return false;
     }
 
+
+    protected override void Dispose(bool disposing) {
+        // nothing to dispose
+    }
+
 }

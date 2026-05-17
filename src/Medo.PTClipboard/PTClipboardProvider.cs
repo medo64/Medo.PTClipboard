@@ -3,11 +3,12 @@
 namespace Medo;
 
 using System;
+using System.Threading;
 
 /// <summary>
 /// Base clipboard provider.
 /// </summary>
-internal abstract class PTClipboardProvider {
+internal abstract class PTClipboardProvider : IDisposable {
 
     /// <summary>
     /// Returns true if clipboard service is available.
@@ -51,5 +52,32 @@ internal abstract class PTClipboardProvider {
     /// Gets the selection clipboard text.
     /// </summary>
     public abstract string GetSelectionText();
+
+
+    #region IDisposable
+
+    private int _wasDisposed;
+
+    /// <summary>
+    /// Gets if dispose already happened.
+    /// </summary>
+    protected bool WasDisposed => Volatile.Read(ref _wasDisposed) != 0;
+
+    /// <summary>
+    /// Dispose all resources used by the clipboard provider.
+    /// </summary>
+    public void Dispose() {
+        if (Interlocked.CompareExchange(ref _wasDisposed, 1, 0) != 0) { return; }
+        GC.SuppressFinalize(this);
+        Dispose(disposing: true);
+    }
+
+    /// <summary>
+    /// Dispose implementation.
+    /// </summary>
+    /// <param name="disposing">True if called from Dispose method.</param>
+    protected abstract void Dispose(bool disposing);
+
+    #endregion IDisposable
 
 }

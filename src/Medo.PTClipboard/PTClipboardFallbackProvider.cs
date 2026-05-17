@@ -71,4 +71,9 @@ internal sealed class PTClipboardFallbackProvider : PTClipboardProvider {
         return SelectionContent ?? string.Empty;
     }
 
+
+    protected override void Dispose(bool disposing) {
+        // nothing to dispose
+    }
+
 }

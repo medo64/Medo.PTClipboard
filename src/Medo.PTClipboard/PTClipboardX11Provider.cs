@@ -12,7 +12,7 @@ using System.Threading;
 /// <summary>
 /// X11 clipboard handling operations.
 /// </summary>
-internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDisposable {
+internal sealed partial class PTClipboardX11Provider : PTClipboardProvider {
 
     internal PTClipboardX11Provider()
         : base() {
@@ -63,13 +63,11 @@ internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDis
     }
 
     ~PTClipboardX11Provider() {
-        Dispose();
+        Dispose(disposing: false);
     }
 
-    private bool WasDisposed;
-    public void Dispose() {
-        if (WasDisposed) { return; } else { WasDisposed = true; }
-        if (DisplayPtr != IntPtr.Zero && EventThread != null) {
+    protected override void Dispose(bool disposing) {
+        if (disposing && DisplayPtr != IntPtr.Zero && EventThread != null) {
             var quitEvent = new Native.XEvent();
             quitEvent.xclient.type = Native.XEventType.ClientMessage;
             quitEvent.xclient.window = WindowPtr;
@@ -81,9 +79,10 @@ internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDis
         }
         if (WindowPtr != IntPtr.Zero) { _ = Native.XDestroyWindow(DisplayPtr, WindowPtr); }
         if (DisplayPtr != IntPtr.Zero) { Native.XCloseDisplay(DisplayPtr); }
-        ClipboardBytesInLock.Dispose();
-        SelectionBytesInLock.Dispose();
-        GC.SuppressFinalize(this);
+        if (disposing) {
+            ClipboardBytesInLock.Dispose();
+            SelectionBytesInLock.Dispose();
+        }
     }
 
 
