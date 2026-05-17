@@ -104,7 +104,7 @@ public static class PTClipboard {
                     var isWaylandDisplay = waylandDisplay.StartsWith("wayland-", StringComparison.OrdinalIgnoreCase);
                     var isWaylandSessionType = xdgSessionType.Equals("wayland", StringComparison.OrdinalIgnoreCase);
                     if (isWaylandDisplay || isWaylandSessionType) {
-                        Provider = new PTClipboardX11Provider();  // TODO: Wayland clipboard provider
+                        Provider = new PTClipboardWaylandProvider();
                         Debug.WriteLine($"[PTClipboard] Using Wayland clipboard provider");
                     } else {
                         Provider = new PTClipboardX11Provider();
