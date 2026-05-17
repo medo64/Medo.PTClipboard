@@ -31,11 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="../Medo.PTClipboard.Tests/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../../src/MultiFramework/Medo.PTClipboard.Multi.csproj" />
+    <ProjectReference Include="../../src/Medo.PTClipboard/Medo.PTClipboard.Multi.csproj" />
   </ItemGroup>
 
 </Project>

@@ -34,7 +34,6 @@
 
   <PropertyGroup>
     <PackageId>Medo.PTClipboard</PackageId>
-    <Version>0.0.0</Version>
     <Authors>Josip Medved</Authors>
     <Copyright>Copyright (c) 2024 Josip Medved</Copyright>
     <Company>www.medo64.com</Company>
@@ -50,10 +49,6 @@
       Supports both clipboard and primary selection buffers.
     </Description>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="../Medo.PTClipboard/*.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Medo.PTClipboard.Tests" />

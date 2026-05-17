@@ -1,6 +1,9 @@
 CHANGELOG
 
-[1.0.0] (2024-07-21)
+Changelog at https://github.com/medo64/Medo.PTClipboard/blob/main/CHANGELOG.md
+
+
+[1.0.0] (2026-05-17)
 
 - Initial release release
 
