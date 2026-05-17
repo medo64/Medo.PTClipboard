@@ -11,6 +11,7 @@ using System.Threading;
 
 /// <summary>
 /// Plain-text clipboard handling operations.
+/// All methods are thread safe.
 /// </summary>
 public static class PTClipboard {
 
@@ -114,8 +115,8 @@ public static class PTClipboard {
                     Provider = new PTClipboardFallbackProvider();
                     Trace.WriteLine($"[PTClipboard] Using fallback clipboard provider for unsupported platform");
                 }
-                MainClipboard = new PTMainClipboard(Provider);
-                SelectionClipboard = new PTSelectionClipboard(Provider);
+                MainClipboard = new PTMainClipboard(Provider, ClipboardLock);
+                SelectionClipboard = new PTSelectionClipboard(Provider, ClipboardLock);
             }
         }
         main = MainClipboard;

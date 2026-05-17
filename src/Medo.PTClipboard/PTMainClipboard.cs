@@ -5,6 +5,7 @@ namespace Medo;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 /// <summary>
 /// Main clipboard handling operations.
@@ -14,27 +15,35 @@ public sealed class PTMainClipboard {
     /// <summary>
     /// Creates a new instance.
     /// </summary>
-    internal PTMainClipboard(PTClipboardProvider provider) {
+    internal PTMainClipboard(PTClipboardProvider provider, Lock syncRoot) {
         ArgumentNullException.ThrowIfNull(provider);
         Provider = provider;
+        SyncRoot = syncRoot;
     }
 
 
     private readonly PTClipboardProvider Provider;
+    private readonly Lock SyncRoot;
 
 
     /// <summary>
     /// Returns true if clipboard service is available.
     /// </summary>
     public bool IsAvailable {
-        get { return Provider.IsClipboardAvailable; }
+        get {
+            lock (SyncRoot) {
+                return Provider.IsClipboardAvailable;
+            }
+        }
     }
 
     /// <summary>
     /// Clears the clipboard.
     /// </summary>
     public void Clear() {
-       Provider.ClearClipboard();
+        lock (SyncRoot) {
+            Provider.ClearClipboard();
+        }
     }
 
     /// <summary>
@@ -42,14 +51,18 @@ public sealed class PTMainClipboard {
     /// </summary>
     /// <param name="text">Text.</param>
     public void SetText(string text) {
-        Provider.SetClipboardText(text);
+        lock (SyncRoot) {
+            Provider.SetClipboardText(text);
+        }
     }
 
     /// <summary>
     /// Gets the clipboard text.
     /// </summary>
     public string GetText() {
-        return Provider.GetClipboardText();
+        lock (SyncRoot) {
+            return Provider.GetClipboardText();
+        }
     }
 
 }

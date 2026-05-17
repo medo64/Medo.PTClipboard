@@ -5,6 +5,7 @@ namespace Medo;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 /// <summary>
 /// Primary selection clipboard handling operations.
@@ -14,41 +15,53 @@ public sealed class PTSelectionClipboard {
     /// <summary>
     /// Creates a new instance.
     /// </summary>
-    internal PTSelectionClipboard(PTClipboardProvider provider) {
+    internal PTSelectionClipboard(PTClipboardProvider provider, Lock syncRoot) {
         ArgumentNullException.ThrowIfNull(provider);
         Provider = provider;
+        SyncRoot = syncRoot;
     }
 
 
     private readonly PTClipboardProvider Provider;
+    private readonly Lock SyncRoot;
 
 
     /// <summary>
     /// Returns true if selection clipboard service is available.
     /// </summary>
     public bool IsAvailable {
-        get { return Provider.IsSelectionAvailable; }
+        get {
+            lock (SyncRoot) {
+                return Provider.IsSelectionAvailable;
+            }
+        }
     }
 
     /// <summary>
     /// Clears the selection clipboard.
     /// </summary>
     public void Clear() {
-        Provider.ClearSelection();
+        lock (SyncRoot) {
+            Provider.ClearSelection();
+        }
     }
 
     /// <summary>
     /// Sets the selection clipboard text.
     /// </summary>
     public void SetText(string text) {
-        Provider.SetSelectionText(text);
+        lock (SyncRoot) {
+            Provider.SetSelectionText(text);
+        }
     }
 
     /// <summary>
     /// Gets the selection clipboard text.
     /// </summary>
     public string GetText() {
-        return Provider.GetSelectionText();
+        lock (SyncRoot) {
+            return Provider.GetSelectionText();
+        }
     }
 
 }
