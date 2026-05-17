@@ -152,6 +152,9 @@ partial class PTClipboardX11Provider {
         [DllImport("libX11")]
         internal extern static void XNextEvent(IntPtr display, ref XEvent event_return);
 
+        [DllImport("libX11")]
+        internal extern static Int32 XInitThreads();
+
         [DllImport("libX11", BestFitMapping = false)]
         internal extern static IntPtr XOpenDisplay([MarshalAs(UnmanagedType.LPUTF8Str)] String? display_name);
 

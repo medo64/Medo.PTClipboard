@@ -12,11 +12,12 @@ using System.Threading;
 /// <summary>
 /// X11 clipboard handling operations.
 /// </summary>
-
 internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDisposable {
 
     internal PTClipboardX11Provider()
         : base() {
+        if (Native.XInitThreads() == 0) { throw new NotSupportedException("Failed to initialize X11 threads"); }
+
         try {
             DisplayPtr = Native.XOpenDisplay(null);
             if (DisplayPtr == IntPtr.Zero) { throw new NotSupportedException("Failed to open display"); }
