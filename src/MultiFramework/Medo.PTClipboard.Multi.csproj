@@ -38,7 +38,7 @@
     <Authors>Josip Medved</Authors>
     <Copyright>Copyright (c) 2024 Josip Medved</Copyright>
     <Company>www.medo64.com</Company>
-    <PackageTags>X11,Clipboard,Primary</PackageTags>
+    <PackageTags>Clipboard,X11,Wayland,Primary,Selection</PackageTags>
     <PackageIcon>ICON.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -46,8 +46,8 @@
     <RepositoryUrl>https://github.com/medo64/Medo.PTClipboard/</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <Description>
-      A library that allows UTF-8 access for X11's both primary selection
-      and main clipboard.
+      A library that allows UTF-8 access for Wayland, X11, or Windows system.
+      Supports both clipboard and primary selection buffers.
     </Description>
   </PropertyGroup>
 

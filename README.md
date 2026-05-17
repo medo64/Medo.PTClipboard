@@ -1,16 +1,15 @@
 Medo.PTClipboard
 ================
 
-Plain-text clipboard that supports Windows and Linux (X11-only at this time but
-it does work on some Wayland distributions too, e.g. Ubuntu). This library provides
-essential functions for getting and setting UTF-8 text content for both primary
-selection and standard clipboard. This makes it ideal for applications that
-require straightforward clipboard interactions without the overhead of more
+Plain-text clipboard that supports Windows and Linux (both X11 and Waylands).
+This library provides essential functions for retrieving and setting UTF-8 text
+content for both the standard clipboard and the primary selection. It allows for
+straightforward clipboard interactions without the overhead of more
 comprehensive libraries.
 
 Features:
-* Works on both Windows and Linux
-* Supports both clipboard and primary selection buffers
+* Works on both Windows and Linux (Wayland, X11)
+* Supports clipboard and primary selection buffers
 
 
 ## Usage
