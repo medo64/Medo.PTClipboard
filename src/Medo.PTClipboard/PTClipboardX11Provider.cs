@@ -68,8 +68,8 @@ internal sealed partial class PTClipboardX11Provider : PTClipboardProvider, IDis
     private bool WasDisposed;
     public void Dispose() {
         if (WasDisposed) { return; } else { WasDisposed = true; }
-        _ = Native.XDestroyWindow(DisplayPtr, WindowPtr);
-        Native.XCloseDisplay(DisplayPtr);
+        if (WindowPtr != IntPtr.Zero) { _ = Native.XDestroyWindow(DisplayPtr, WindowPtr); }
+        if (DisplayPtr != IntPtr.Zero) { Native.XCloseDisplay(DisplayPtr); }
         ClipboardBytesInLock.Dispose();
         SelectionBytesInLock.Dispose();
         GC.SuppressFinalize(this);
