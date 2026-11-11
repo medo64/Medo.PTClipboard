@@ -3,6 +3,11 @@ CHANGELOG
 Changelog at https://github.com/medo64/Medo.PTClipboard/blob/main/CHANGELOG.md
 
 
+[1.1.0] (2026-11-10)
+
+- Upgraded to .NET 11
+
+
 [1.0.0] (2026-05-17)
 
 - Initial release release
@@ -10,4 +15,5 @@ Changelog at https://github.com/medo64/Medo.PTClipboard/blob/main/CHANGELOG.md
 
 
 [unreleased]: https://github.com/medo64/Medo.PTClipboard
+[1.1.0]: https://www.nuget.org/packages/Medo.PTClipboard/1.1.0
 [1.0.0]: https://www.nuget.org/packages/Medo.PTClipboard/1.0.0
